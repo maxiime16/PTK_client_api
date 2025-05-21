@@ -1,26 +1,24 @@
-name: Vérification structure projet
+name: CI - Clients API
 
 on:
   push:
-    branches:
-      - 'feature/Githubaction'
+    branches: [develop, main, 'feature/**']
 
 jobs:
-  check-structure:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout du code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Afficher la structure du projet avec tree
-        run: |
-          if command -v tree > /dev/null; then
-            tree
-          else
-            echo "tree n'est pas installé, affichage avec ls -R"
-            ls -R
-          fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: './package-lock.json'
 
-      - name: Afficher Hello World
-        run: echo "Hello World"
+      - run: npm install
+
+      - run: npm run build
+
+      - run: npm test
