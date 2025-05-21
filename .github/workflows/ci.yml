@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./clients-api  # <-- corriger ici si besoin
+        working-directory: clients-api  # <-- corriger ici si besoin
 
     steps:
     - uses: actions/checkout@v4
