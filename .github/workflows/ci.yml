@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./clients-api
+        working-directory: ./PKT_client_api
 
     steps:
     - uses: actions/checkout@v4
