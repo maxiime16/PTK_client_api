@@ -3,7 +3,7 @@ name: Vérification structure projet
 on:
   push:
     branches:
-      - main
+      - 'feature/Githubaction'
 
 jobs:
   check-structure:
