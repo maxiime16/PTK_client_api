@@ -9,15 +9,18 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./PKT_client_api
+        working-directory: ./PTK_client_api  # <-- corriger ici si besoin
 
     steps:
     - uses: actions/checkout@v4
+
+    - run: ls -al  # debug pour confirmer le nom du dossier
+
     - uses: actions/setup-node@v4
       with:
         node-version: 20
         cache: 'npm'
-        cache-dependency-path: 'package-lock.json'
+        cache-dependency-path: PTK_client_api/package-lock.json  # mettre le bon chemin
 
     - run: npm install
     - run: npm run build
