@@ -9,19 +9,41 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: clients-api  # <-- corriger ici si besoin
+        # On ne met rien ici pour ne pas bloquer sur un mauvais dossier
+        # On choisira le working-directory dans les étapes où c'est nécessaire
+        # working-directory: ./PKT_client_api
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout repo
+      uses: actions/checkout@v4
 
-    - run: ls -al  # debug pour confirmer le nom du dossier
+    - name: Debug - Affiche le chemin courant et contenu racine
+      run: |
+        echo "Répertoire courant : $(pwd)"
+        echo "Contenu du dossier racine :"
+        ls -al
 
-    - uses: actions/setup-node@v4
+    - name: Debug - Recherche dossier client API
+      run: |
+        echo "Recherche des dossiers dans le repo :"
+        ls -al
+
+    # Ajuste ici le chemin selon ce que tu trouves dans le debug
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
       with:
         node-version: 20
         cache: 'npm'
-        cache-dependency-path: PTK_client_api/package-lock.json  # mettre le bon chemin
+        cache-dependency-path: PKT_client_api/package-lock.json
 
-    - run: npm install
-    - run: npm run build
-    - run: npm test
+    - name: Install dependencies
+      run: npm install
+      working-directory: ./PKT_client_api
+
+    - name: Build
+      run: npm run build
+      working-directory: ./PKT_client_api
+
+    - name: Run tests
+      run: npm test
+      working-directory: ./PKT_client_api
