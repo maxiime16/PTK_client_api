@@ -3,7 +3,6 @@ import tsPlugin from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import prettier from 'eslint-plugin-prettier';
 
-/** @type {import("eslint").Linter.FlatConfig[]} */
 export default [
   js.configs.recommended,
   {
@@ -12,22 +11,23 @@ export default [
       parser: tsParser,
       parserOptions: {
         project: './tsconfig.json',
-        sourceType: 'module'
+        sourceType: 'module',
       },
       globals: {
         console: true,
-        process: true
-      }
+        process: true,
+        Buffer: true,
+      },
     },
     plugins: {
       '@typescript-eslint': tsPlugin,
-      prettier
+      prettier,
     },
     rules: {
       'prettier/prettier': 'error',
-      'semi': ['error', 'always'],
-      'quotes': ['error', 'single'],
-      '@typescript-eslint/no-unused-vars': ['warn']
-    }
-  }
+      semi: ['error', 'always'],
+      quotes: ['error', 'single'],
+      '@typescript-eslint/no-unused-vars': ['warn'],
+    },
+  },
 ];
