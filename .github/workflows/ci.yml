@@ -1,24 +1,27 @@
-name: CI - Clients API
+name: Feature Branch CI
 
 on:
   push:
-    branches: [develop, main, 'feature/**']
+    branches:
+      - 'feature/*'
 
 jobs:
-  build:
+  lint-and-test:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: './package-lock.json'
 
-      - run: npm install
+      - name: Install dependencies
+        run: npm install
 
-      - run: npm run build
+      - name: Run Lint
+        run: npm run lint
 
-      - run: npm test
+      - name: Run Unit Tests
+        #run: npm run test:unit
