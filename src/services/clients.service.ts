@@ -1,4 +1,4 @@
-import { Client } from "../models/Client";
+import { Client } from '../models/Client';
 
 export async function findAllClients() {
   return Client.find();

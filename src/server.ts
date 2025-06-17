@@ -1,9 +1,10 @@
-import express from "express";
-import cors from "cors";
-import helmet from "helmet";
-import compression from "compression";
-import { connectDB } from "./config/mongoose";
-import clientsRouter from "./routes/clients.routes";
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
+import { connectDB } from './config/mongoose';
+import { connectRabbitMQ } from './lib/rabbitmq';
+import ordersRouter from './routes/clients.routes';
 
 const app = express();
 
@@ -14,12 +15,26 @@ app.use(helmet());
 app.use(compression());
 
 // Routes
-app.use("/clients", clientsRouter);
+app.use('/orders', ordersRouter);
 
-// Server start
-const PORT = process.env.PORT || 3001;
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`✅ Clients API running on port ${PORT}`);
-  });
-});
+const PORT_CLIENT = process.env.PORT_CLIENT;
+
+async function startServer() {
+  try {
+    // On attend la connexion MongoDB et RabbitMQ
+    await connectDB();
+    await connectRabbitMQ();
+
+    // Démarrer le consumer qui écoute
+
+    // On démarre ensuite le serveur
+    app.listen(PORT_CLIENT, () => {
+      console.log(`✅ Evertything is OK, Cients API running on port ${PORT_CLIENT}`);
+    });
+  } catch (error) {
+    console.error('Erreur lors du démarrage du serveur :', error);
+    process.exit(1);
+  }
+}
+
+startServer();
