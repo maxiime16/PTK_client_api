@@ -3,7 +3,7 @@ name: Deploy to Stage
 on:
   pull_request:
     branches:
-      - "stage"
+      - "develop"
       - "prod"
       - "feature/*"
 
