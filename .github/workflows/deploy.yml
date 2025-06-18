@@ -3,7 +3,8 @@ name: Deploy to Production
 on:
   pull_request:
     branches:
-      - 'prod'
+      - 'main'
+      - 'develop'
 
 jobs:
   deploy:
@@ -22,5 +23,5 @@ jobs:
         run: |
           docker build -t myapp:latest .
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker tag myapp:latest myregistry/myapp:latest
-          docker push myregistry/myapp:latest
+          docker tag myapp:latest enzodesousa/myapp:latest
+          docker push enzodesousa/myapp:latest
