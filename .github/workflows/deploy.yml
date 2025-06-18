@@ -25,5 +25,5 @@ jobs:
         run: |
           docker build -t myapp:latest .
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker tag myapp:latest enzodesousa/myapp:latest
-          docker push enzodesousa/myapp:latest
+          docker tag ptk_client_api:latest enzodesousa/ptk_client_api:latest
+          docker push enzodesousa/ptk_client_api:latest
