@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, model } from 'mongoose';
 
 const clientSchema = new Schema(
   {
@@ -15,7 +15,7 @@ const clientSchema = new Schema(
   },
   {
     timestamps: true, // créé automatiquement createdAt et updatedAt
-  }
+  },
 );
 
-export const Client = model("Client", clientSchema);
+export const Client = model('Client', clientSchema);
