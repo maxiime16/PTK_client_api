@@ -3,8 +3,9 @@ name: Deploy to Production
 on:
   pull_request:
     branches:
-      - 'main'
+      #- 'main'
       - 'develop'
+      
 
 jobs:
   deploy:
