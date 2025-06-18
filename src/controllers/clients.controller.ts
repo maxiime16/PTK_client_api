@@ -5,7 +5,7 @@ import {
   createNewClient,
   updateExistingClient,
   removeClient,
-} from '../services/clients.service';
+} from '../services/clients.service.js';
 
 export async function getAllClients(req: Request, res: Response) {
   try {
