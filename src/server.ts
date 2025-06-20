@@ -15,7 +15,7 @@ app.use(helmet());
 app.use(compression());
 
 // Routes
-app.use('/clients', clientsRouter);
+app.use('/clientss', clientsRouter);
 
 const PORT_CLIENT = process.env.PORT_CLIENT;
 
