@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import compression from 'compression';
 import { connectDB } from './config/mongoose.js';
 import { connectRabbitMQ } from './lib/rabbitmq.js';
-import ordersRouter from './routes/clients.routes.js';
+import clientsRouter from './routes/clients.routes.js';
 
 const app = express();
 
@@ -15,7 +15,7 @@ app.use(helmet());
 app.use(compression());
 
 // Routes
-app.use('/orders', ordersRouter);
+app.use('/clients', clientsRouter);
 
 const PORT_CLIENT = process.env.PORT_CLIENT;
 
