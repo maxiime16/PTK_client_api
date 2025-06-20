@@ -1,0 +1,150 @@
+name: Deploy to GCP VM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # ===============================================
+      # 1. PRÉPARATION
+      # ===============================================
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      # ===============================================
+      # 2. TESTS ET BUILD
+      # ===============================================
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linting
+        run: npm run lint
+        continue-on-error: true
+      
+      - name: Build TypeScript
+        run: npm run build
+      
+      # ===============================================
+      # 3. CONFIGURATION ENVIRONNEMENT (PRODUCTION UNIQUEMENT)
+      # ===============================================
+      - name: Set environment variables
+        run: |
+          # Nom du service depuis le repository
+          SERVICE_NAME="ptk-clients-api"
+          echo "SERVICE_NAME=$SERVICE_NAME" >> $GITHUB_ENV
+          echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-8)" >> $GITHUB_ENV
+          echo "DATE_TAG=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+          
+          # Toujours en production maintenant
+          echo "ENVIRONMENT=production" >> $GITHUB_ENV
+          echo "CONTAINER_SUFFIX=prod" >> $GITHUB_ENV
+          
+          echo "🔍 Service: $SERVICE_NAME"
+          echo "🌍 Environment: production"
+      
+      # ===============================================
+      # 4. BUILD ET PUSH DOCKER IMAGE
+      # ===============================================
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+      
+      - name: Build and push Docker image
+        run: |
+          IMAGE_NAME="${{ secrets.DOCKER_USERNAME }}/${{ env.SERVICE_NAME }}"
+          
+          # Tags pour versioning (production uniquement)
+          TAG_PROD="production"
+          TAG_SHA="production-${{ env.SHORT_SHA }}"
+          TAG_DATE="production-${{ env.DATE_TAG }}"
+          TAG_LATEST="production-latest"
+          
+          echo "🐳 Building image: $IMAGE_NAME"
+          echo "🏷️ Tags: $TAG_PROD, $TAG_SHA, $TAG_DATE, $TAG_LATEST"
+          
+          # Build l'image
+          docker build -t $IMAGE_NAME:$TAG_PROD .
+          
+          # Ajouter tous les tags
+          docker tag $IMAGE_NAME:$TAG_PROD $IMAGE_NAME:$TAG_SHA
+          docker tag $IMAGE_NAME:$TAG_PROD $IMAGE_NAME:$TAG_DATE
+          docker tag $IMAGE_NAME:$TAG_PROD $IMAGE_NAME:$TAG_LATEST
+          
+          # Push tous les tags
+          docker push $IMAGE_NAME:$TAG_PROD
+          docker push $IMAGE_NAME:$TAG_SHA
+          docker push $IMAGE_NAME:$TAG_DATE
+          docker push $IMAGE_NAME:$TAG_LATEST
+          
+          echo "✅ Image pushed: $IMAGE_NAME:$TAG_PROD"
+      
+      # ===============================================
+      # 5. AUTHENTIFICATION GCP
+      # ===============================================
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+      
+      # ===============================================
+      # 6. DÉPLOIEMENT SUR VM GCP (PRODUCTION)
+      # ===============================================
+      - name: Deploy to GCP VM Production
+        run: |
+          # Créer le script de déploiement
+          cat > deploy-script.sh << 'EOF'
+          #!/bin/bash
+          set -e
+          
+          SERVICE_NAME="${{ env.SERVICE_NAME }}"
+          CONTAINER_SUFFIX="prod"
+          DOCKER_USERNAME="${{ secrets.DOCKER_USERNAME }}"
+          IMAGE_TAG="production-${{ env.SHORT_SHA }}"
+          
+          echo "🚀 Deploying $SERVICE_NAME to PRODUCTION"
+          echo "📦 Image: $DOCKER_USERNAME/$SERVICE_NAME:$IMAGE_TAG"
+          
+          # Aller dans le répertoire du projet
+          cd /opt/payetonkawa
+          
+          # Pull de la nouvelle image
+          echo "⬇️ Pulling new image..."
+          sudo docker pull $DOCKER_USERNAME/$SERVICE_NAME:$IMAGE_TAG
+          
+          # Tag comme production pour docker-compose
+          sudo docker tag $DOCKER_USERNAME/$SERVICE_NAME:$IMAGE_TAG $DOCKER_USERNAME/$SERVICE_NAME:production
+          
+          # Identifier le service à redémarrer
+          COMPOSE_SERVICE="clients-api-prod"
+          
+          echo "🔄 Restarting service: $COMPOSE_SERVICE"
+          
+          # Mettre à jour le .env avec la nouvelle image
+          sudo sed -i "s|DOCKER_REGISTRY=.*|DOCKER_REGISTRY=$DOCKER_USERNAME|g" .env
+          
+          # Arrêter et supprimer le container existant
+          sudo docker-compose stop $COMPOSE_SERVICE || true
+          sudo docker-compose rm -f $COMPOSE_SERVICE || true
+          
+          # Redémarrer avec la nouvelle image
+          sudo docker-compose up -d $COMPOSE_SERVICE
+          
+          # Attendre que le service soit prêt
+          echo "⏳ Waiting for service to be ready..."
+          sleep
