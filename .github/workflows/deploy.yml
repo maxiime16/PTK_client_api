@@ -1,9 +1,10 @@
 name: Deploy to GCP VM
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
-      - main # Deploy to production only
+      - main
 
 jobs:
   build-and-deploy:
@@ -36,7 +37,7 @@ jobs:
         run: npm run build
 
       # ===============================================
-      # 3. CONFIGURATION ENVIRONNEMENT (PRODUCTION UNIQUEMENT)
+      # 3. CONFIGURATION ENVIRONNEMENT
       # ===============================================
       - name: Set environment variables
         run: |
@@ -50,8 +51,8 @@ jobs:
           echo "ENVIRONMENT=production" >> $GITHUB_ENV
           echo "CONTAINER_SUFFIX=prod" >> $GITHUB_ENV
 
-          echo "🔍 Service: $SERVICE_NAME"
-          echo "🌍 Environment: production"
+          echo "Service: $SERVICE_NAME"
+          echo "Environment: production"
 
       # ===============================================
       # 4. BUILD ET PUSH DOCKER IMAGE
@@ -161,17 +162,17 @@ jobs:
               break
             elif [ $i -eq 5 ]; then
               echo "⚠️ Health check failed, but service might still be starting"
-              echo "📋 Container status:"
+              echo "Container status:"
               sudo docker ps | grep $COMPOSE_SERVICE || echo "Container not found"
               sudo docker-compose logs --tail=20 $COMPOSE_SERVICE || echo "No logs available"
             else
-              echo "⏳ Attempt $i/5 failed, retrying in 10 seconds..."
+              echo "Attempt $i/5 failed, retrying in 10 seconds..."
               sleep 10
             fi
           done
 
           # Nettoyer les anciennes images (garder les 5 dernières)
-          echo "🧹 Cleaning old images..."
+          echo "Cleaning old images..."
           sudo docker images $DOCKER_USERNAME/$SERVICE_NAME --format "table {{.Tag}}\t{{.CreatedAt}}" | grep -v TAG | sort -k2 -r | tail -n +6 | awk '{print "'$DOCKER_USERNAME'/'$SERVICE_NAME':"$1}' | xargs -r sudo docker rmi || true
 
           echo "🎉 Production deployment completed!"
