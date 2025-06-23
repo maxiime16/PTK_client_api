@@ -5,7 +5,7 @@ import {
   createClient,
   updateClient,
   deleteClient,
-} from '../controllers/clients.controller.js';
+} from '../controllers/clients.controller';
 
 const router = Router();
 
