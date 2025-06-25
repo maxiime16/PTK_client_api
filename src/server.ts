@@ -2,9 +2,13 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
+import router from './routes/clients.routes.js';
+import { register } from './config/metrics.js';
 import { connectDB } from './config/mongoose.js';
 import { connectRabbitMQ } from './lib/rabbitmq.js';
-import ordersRouter from './routes/clients.routes.js';
+import { requestLogger } from './lib/loggerMiddleware.js';
+import { metricsMiddleware } from './lib/metricsMiddleware.js';
+
 
 const app = express();
 
@@ -13,9 +17,16 @@ app.use(express.json());
 app.use(cors());
 app.use(helmet());
 app.use(compression());
+app.use(requestLogger);
+app.use(metricsMiddleware);
 
 // Routes
-app.use('/orders', ordersRouter);
+app.use('/clients', router);
+
+app.get('/metrics', async (req, res) => {
+  res.set('Content-Type', register.contentType);
+  res.end(await register.metrics());
+});
 
 const PORT_CLIENT = process.env.PORT_CLIENT;
 
