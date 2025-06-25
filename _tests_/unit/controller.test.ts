@@ -5,10 +5,10 @@ import {
   createClient,
   updateClient,
   deleteClient,
-} from '../src/controllers/clients.controller.js';
-import * as clientService from '../src/services/clients.service.js';
+} from '../../src/controllers/clients.controller.js';
+import * as clientService from '../../src/services/clients.service.js';
 
-jest.mock('../src/services/clients.service');
+jest.mock('../../src/services/clients.service.js');
 
 // 🛠️ Utilitaire pour créer une fausse response
 const mockResponse = (): Response => {
