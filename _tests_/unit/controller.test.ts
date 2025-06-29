@@ -6,9 +6,12 @@ import {
   updateClient,
   deleteClient,
 } from '../../src/controllers/clients.controller.js';
+
 import * as clientService from '../../src/services/clients.service.js';
+import * as clientPublisher from '../../src/services/clientPublisher.js';
 
 jest.mock('../../src/services/clients.service.js');
+jest.mock('../../src/services/clientPublisher.js');
 
 // 🛠️ Utilitaire pour créer une fausse response
 const mockResponse = (): Response => {
@@ -96,12 +99,15 @@ describe('Clients Controller', () => {
       const req = mockRequest({ body: { name: 'New Client' } });
       const res = mockResponse();
       const newClient = { id: '2', name: 'New Client' };
+
       (clientService.createNewClient as jest.Mock).mockResolvedValue(newClient);
+      (clientPublisher.publishClientCreated as jest.Mock).mockResolvedValue(undefined);
 
       await createClient(req, res);
 
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith(newClient);
+      expect(clientPublisher.publishClientCreated).toHaveBeenCalledWith(newClient);
     });
 
     it('should handle errors', async () => {
@@ -142,7 +148,9 @@ describe('Clients Controller', () => {
     it('should handle errors', async () => {
       const req = mockRequest({ params: { id: '1' }, body: { name: '' } });
       const res = mockResponse();
-      (clientService.updateExistingClient as jest.Mock).mockRejectedValue(new Error('Validation error'));
+      (clientService.updateExistingClient as jest.Mock).mockRejectedValue(
+        new Error('Validation error'),
+      );
 
       await updateClient(req, res);
 

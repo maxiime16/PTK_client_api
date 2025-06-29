@@ -6,6 +6,7 @@ import {
   updateExistingClient,
   removeClient,
 } from '../services/clients.service.js';
+import { publishClientCreated } from '../services/clientPublisher.js';
 
 export async function getAllClients(req: Request, res: Response) {
   try {
@@ -32,6 +33,7 @@ export async function getClientById(req: Request, res: Response) {
 export async function createClient(req: Request, res: Response) {
   try {
     const newClient = await createNewClient(req.body);
+    await publishClientCreated(newClient);
     return res.status(201).json(newClient);
   } catch (error: any) {
     return res.status(400).json({ error: error.message });
